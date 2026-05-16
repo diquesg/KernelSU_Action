@@ -257,9 +257,10 @@ jobs:
         fi
 
         if [ -f KernelSU-Next/kernel/Kbuild ]; then
-          sed -i '/No hooks were defined/d' KernelSU-Next/kernel/Kbuild
-          sed -i '/ifeq ($(CONFIG_KSU_MANUAL_HOOK)/, +2d' KernelSU-Next/kernel/Kbuild
-          echo "Trava do KernelSU-Next removida com sucesso!"
+          echo 'obj-y += apk.o allowlist.o ksu.o manager.o selinux.o uid.o patch.o' > KernelSU-Next/kernel/Kbuild
+          echo 'obj-y += hooks/' >> KernelSU-Next/kernel/Kbuild
+          echo 'ccflags-y += -DCONFIG_KSU -DCONFIG_KSU_MANUAL_HOOK' >> KernelSU-Next/kernel/Kbuild
+          echo "Validação do Kbuild recriada em Modo Manual pura!"
         fi
 
         make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.KERNEL_CONFIG }}
