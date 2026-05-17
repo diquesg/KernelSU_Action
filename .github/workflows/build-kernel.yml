@@ -256,12 +256,12 @@ jobs:
           export KSU_EXPECTED_HASH=${{ env.KSU_EXPECTED_HASH }}
         fi
 
-        KSU_H_PATH=$(find . -name "ksu.h" | head -n 1)
-        if [ ! -z "$KSU_H_PATH" ]; then
-          ln -sf "$(pwd)/$(dirname $KSU_H_PATH)/"* fs/
-          echo "Atalhos do KernelSU injetados com sucesso em fs/!"
+        KSU_CORE_PATH=$(find . -name "ksu.h" -exec dirname {} \; | head -n 1)
+        if [ ! -z "$KSU_CORE_PATH" ]; then
+          ln -sf "$(pwd)/$KSU_CORE_PATH/"* fs/
+          echo "Todos os headers do KernelSU (incluindo hooks.h) injetados com sucesso em fs/!"
         else
-          echo "AVISO: ksu.h não foi encontrado na árvore!"
+          echo "AVISO: Estrutura do KernelSU não encontrada na árvore!"
         fi
 
         if [ -f KernelSU-Next/kernel/Kbuild ]; then
