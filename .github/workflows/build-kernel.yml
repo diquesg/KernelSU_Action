@@ -256,6 +256,14 @@ jobs:
           export KSU_EXPECTED_HASH=${{ env.KSU_EXPECTED_HASH }}
         fi
 
+        KSU_H_PATH=$(find . -name "ksu.h" | head -n 1)
+        if [ ! -z "$KSU_H_PATH" ]; then
+          ln -sf "$(pwd)/$(dirname $KSU_H_PATH)/"* fs/
+          echo "Atalhos do KernelSU injetados com sucesso em fs/!"
+        else
+          echo "AVISO: ksu.h não foi encontrado na árvore!"
+        fi
+
         if [ -f KernelSU-Next/kernel/Kbuild ]; then
           echo 'obj-y += apk.o allowlist.o ksu.o manager.o selinux.o uid.o patch.o' > KernelSU-Next/kernel/Kbuild
           echo 'ccflags-y += -DCONFIG_KSU -DCONFIG_KSU_MANUAL_HOOK' >> KernelSU-Next/kernel/Kbuild
