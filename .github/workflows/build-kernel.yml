@@ -256,10 +256,21 @@ jobs:
           export KSU_EXPECTED_HASH=${{ env.KSU_EXPECTED_HASH }}
         fi
 
-        if [ -f KernelSU-Next/kernel/Kbuild ]; then
+                KSU_H_REAL=$(find . -name "ksu.h" | head -n 1)
+        if [ ! -z "$KSU_H_REAL" ]; then
+          KSU_ROOT_DIR=$(echo "$KSU_H_REAL" | sed 's/\/kernel\/ksu.h//')
+          ln -sf "$(pwd)/$KSU_ROOT_DIR" ./KernelSU-Next
+          echo "Pasta real do KernelSU detectada em: $KSU_ROOT_DIR"
+          echo "Link simbólico 'KernelSU-Next' criado com sucesso na raiz do kernel!"
+        else
+          echo "AVISO: ksu.h não foi encontrado em nenhuma pasta!"
+        fi
+
+        # Força o KernelSU-Next a compilar em modo manual limpo sem dependências de Kprobes
+        if [ -d KernelSU-Next/kernel ]; then
           echo 'obj-y += apk.o allowlist.o ksu.o manager.o selinux.o uid.o patch.o' > KernelSU-Next/kernel/Kbuild
           echo 'ccflags-y += -DCONFIG_KSU -DCONFIG_KSU_MANUAL_HOOK' >> KernelSU-Next/kernel/Kbuild
-          echo "Validação do Kbuild ajustada sem a pasta hooks!"
+          echo "Validação do Kbuild ajustada em Modo Manual pura!"
         fi
 
         make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.KERNEL_CONFIG }}
