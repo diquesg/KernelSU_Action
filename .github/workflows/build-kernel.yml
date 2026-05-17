@@ -256,14 +256,14 @@ jobs:
           export KSU_EXPECTED_HASH=${{ env.KSU_EXPECTED_HASH }}
         fi
 
-                KSU_H_REAL=$(find . -name "ksu.h" | head -n 1)
+        KSU_H_REAL=$(find . -name "ksu.h" | head -n 1)
         if [ ! -z "$KSU_H_REAL" ]; then
+          cp -f "$KSU_H_REAL" include/linux/ksu.h
           KSU_ROOT_DIR=$(echo "$KSU_H_REAL" | sed 's/\/kernel\/ksu.h//')
           ln -sf "$(pwd)/$KSU_ROOT_DIR" ./KernelSU-Next
-          echo "Pasta real do KernelSU detectada em: $KSU_ROOT_DIR"
-          echo "Link simbólico 'KernelSU-Next' criado com sucesso na raiz do kernel!"
+          echo "Cabeçalho global do KernelSU injetado com sucesso em include/linux/ksu.h!"
         else
-          echo "AVISO: ksu.h não foi encontrado em nenhuma pasta!"
+          echo "AVISO: ksu.h não foi encontrado na árvore!"
         fi
 
         # Força o KernelSU-Next a compilar em modo manual limpo sem dependências de Kprobes
