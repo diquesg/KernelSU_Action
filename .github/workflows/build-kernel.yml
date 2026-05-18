@@ -266,19 +266,22 @@ jobs:
           echo "AVISO: ksu.h não foi encontrado na árvore!"
         fi
 
-        KBUILD_REAL=$(find . -name "Kbuild" | grep -i "kernelsu" | head -n 1)
-        if [ ! -z "$KBUILD_REAL" ]; then
-          KSU_DIR=$(dirname "$KBUILD_REAL")
+        KSU_CORE_DIR=$(find . -name "ksu.h" -exec dirname {} \; | head -n 1)
+        if [ ! -z "$KSU_CORE_DIR" ]; then
+          # Cria atalhos de todos os arquivos .c e .h do KSU diretamente na pasta drivers/char/
+          ln -sf "$(pwd)/$KSU_CORE_DIR/"* drivers/char/
           
-          # Injeta a variável de caminhos estendidos do Makefile (src) apontando para a árvore real de código fonte
-          echo "src := \$(srctree)/$KSU_DIR" > "$KBUILD_REAL"
-          echo 'KernelSU-Next-y := apk.o allowlist.o ksu.o manager.o selinux.o uid.o patch.o' >> "$KBUILD_REAL"
-          echo 'obj-y += KernelSU-Next.o' >> "$KBUILD_REAL"
-          echo "ccflags-y += -DCONFIG_KSU -DCONFIG_KSU_MANUAL_HOOK -I\$(srctree)/$KSU_DIR" >> "$KBUILD_REAL"
+          # Injeta a ordem de compilação dos arquivos do KernelSU dentro do Makefile oficial dos drivers de caractere
+          echo "obj-y += apk.o allowlist.o ksu.o manager.o selinux.o uid.o patch.o" >> drivers/char/Makefile
+          echo "ccflags-y += -DCONFIG_KSU -DCONFIG_KSU_MANUAL_HOOK" >> drivers/char/Makefile
           
-          echo "Kbuild do KernelSU-Next completamente adaptado para compilar no diretório out/!"
+          # Esvazia o Kbuild antigo do KernelSU-Next para ele não tentar compilar em paralelo e dar erro
+          KBUILD_OLD=$(find . -name "Kbuild" | grep -i "kernelsu" | head -n 1)
+          if [ ! -z "$KBUILD_OLD" ]; then echo "" > "$KBUILD_OLD"; fi
+          
+          echo "KernelSU-Next mesclado fisicamente com sucesso dentro de drivers/char/!"
         else
-          echo "AVISO: Arquivo Kbuild do KernelSU não foi encontrado pelo find!"
+          echo "AVISO: Código fonte do KernelSU não foi encontrado pelo find!"
         fi
 
         make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.KERNEL_CONFIG }}
