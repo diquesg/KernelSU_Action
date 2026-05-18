@@ -263,11 +263,11 @@ jobs:
           echo "Trava de ganchos transformada em aviso no arquivo: $KSU_KBUILD"
         fi
 
-        # DOWNLOAD E INJEÇÃO DOS ARQUIVOS BASE DO SUSFS
-        echo "Baixando arquivos base do SuSFS..."
-        git clone https://gitlab.com/simonpunk/susfs4ksu.git
+        # DOWNLOAD E INJEÇÃO DOS ARQUIVOS BASE DO SUSFS PARA KERNEL 4.14
+        echo "Baixando arquivos base do SuSFS v1.5.1..."
+        git clone https://gitlab.com/simonpunk/susfs4ksu.git susfs_repo
         
-        # Copia os cabeçalhos e códigos obrigatórios específicos do SuSFS da pasta 4.14/v1.5.1
+        # Copia os cabeçalhos e códigos obrigatórios específicos do SuSFS da linha 4.14
         cp -f susfs_repo/kernel_patches/include/linux/susfs.h include/linux/
         cp -f susfs_repo/kernel_patches/include/linux/susfs_def.h include/linux/
         cp -f susfs_repo/kernel_patches/fs/susfs.c fs/
