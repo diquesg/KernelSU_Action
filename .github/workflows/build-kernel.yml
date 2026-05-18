@@ -269,10 +269,14 @@ jobs:
         KBUILD_REAL=$(find . -name "Kbuild" | grep -i "kernelsu" | head -n 1)
         if [ ! -z "$KBUILD_REAL" ]; then
           KSU_DIR=$(dirname "$KBUILD_REAL")
-          echo 'KernelSU-Next-y := apk.o allowlist.o ksu.o manager.o selinux.o uid.o patch.o' > "$KBUILD_REAL"
+          
+          # Injeta a variável de caminhos estendidos do Makefile (src) apontando para a árvore real de código fonte
+          echo "src := \$(srctree)/$KSU_DIR" > "$KBUILD_REAL"
+          echo 'KernelSU-Next-y := apk.o allowlist.o ksu.o manager.o selinux.o uid.o patch.o' >> "$KBUILD_REAL"
           echo 'obj-y += KernelSU-Next.o' >> "$KBUILD_REAL"
           echo "ccflags-y += -DCONFIG_KSU -DCONFIG_KSU_MANUAL_HOOK -I\$(srctree)/$KSU_DIR" >> "$KBUILD_REAL"
-          echo "Kbuild do KernelSU-Next localizado e corrigido com sucesso em: $KBUILD_REAL"
+          
+          echo "Kbuild do KernelSU-Next completamente adaptado para compilar no diretório out/!"
         else
           echo "AVISO: Arquivo Kbuild do KernelSU não foi encontrado pelo find!"
         fi
