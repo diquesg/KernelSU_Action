@@ -266,11 +266,15 @@ jobs:
           echo "AVISO: ksu.h não foi encontrado na árvore!"
         fi
 
-        if [ -d KernelSU-Next/kernel ]; then
-          echo 'KernelSU-Next-y := apk.o allowlist.o ksu.o manager.o selinux.o uid.o patch.o' > KernelSU-Next/kernel/Kbuild
-          echo 'obj-y += KernelSU-Next.o' >> KernelSU-Next/kernel/Kbuild
-          echo 'ccflags-y += -DCONFIG_KSU -DCONFIG_KSU_MANUAL_HOOK -I$(srctree)/KernelSU-Next/kernel' >> KernelSU-Next/kernel/Kbuild
-          echo "Mapeamento do Kbuild corrigido para a pasta out!"
+        KBUILD_REAL=$(find . -name "Kbuild" | grep -i "kernelsu" | head -n 1)
+        if [ ! -z "$KBUILD_REAL" ]; then
+          KSU_DIR=$(dirname "$KBUILD_REAL")
+          echo 'KernelSU-Next-y := apk.o allowlist.o ksu.o manager.o selinux.o uid.o patch.o' > "$KBUILD_REAL"
+          echo 'obj-y += KernelSU-Next.o' >> "$KBUILD_REAL"
+          echo "ccflags-y += -DCONFIG_KSU -DCONFIG_KSU_MANUAL_HOOK -I\$(srctree)/$KSU_DIR" >> "$KBUILD_REAL"
+          echo "Kbuild do KernelSU-Next localizado e corrigido com sucesso em: $KBUILD_REAL"
+        else
+          echo "AVISO: Arquivo Kbuild do KernelSU não foi encontrado pelo find!"
         fi
 
         make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.KERNEL_CONFIG }}
