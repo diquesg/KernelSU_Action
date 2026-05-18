@@ -256,12 +256,25 @@ jobs:
           export KSU_EXPECTED_HASH=${{ env.KSU_EXPECTED_HASH }}
         fi
 
-        # NEUTRALIZAÇÃO DA TRAVA: Desativa o erro do Kbuild sem mexer na estrutura de blocos
+        # NEUTRALIZAÇÃO DA TRAVA DO KERNELSU-NEXT
         KSU_KBUILD=$(find . -name "Kbuild" | grep -i "kernelsu" | head -n 1)
         if [ ! -z "$KSU_KBUILD" ]; then
           sed -i 's/\$(error -- Kernel/\$(warning -- Kernel/g' "$KSU_KBUILD"
           echo "Trava de ganchos transformada em aviso no arquivo: $KSU_KBUILD"
         fi
+
+        # DOWNLOAD E INJEÇÃO DOS ARQUIVOS BASE DO SUSFS
+        echo "Baixando arquivos base do SuSFS..."
+        git clone https://gitlab.com/simonpunk/susfs4ksu.git
+        
+        # Copia os cabeçalhos e códigos obrigatórios específicos do SuSFS da pasta 4.14/v1.5.1
+        cp -f susfs_repo/kernel_patches/include/linux/susfs.h include/linux/
+        cp -f susfs_repo/kernel_patches/include/linux/susfs_def.h include/linux/
+        cp -f susfs_repo/kernel_patches/fs/susfs.c fs/
+        
+        # Vincula o SuSFS no Makefile do sistema de arquivos da Xiaomi
+        echo "obj-y += susfs.o" >> fs/Makefile
+        echo "Arquivos base do SuSFS para kernel 4.14 injetados com sucesso!"
 
         make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.KERNEL_CONFIG }}
         
