@@ -263,18 +263,28 @@ jobs:
           echo "Trava de ganchos transformada em aviso no arquivo: $KSU_KBUILD"
         fi
 
-        # DOWNLOAD E INJEÇÃO DOS ARQUIVOS BASE DO SUSFS PARA KERNEL 4.14
+        # DOWNLOAD E INJEÇÃO AUTOMÁTICA DOS ARQUIVOS DO SUSFS PARA KERNEL 4.14
         echo "Baixando arquivos base do SuSFS v1.5.1..."
         git clone https://gitlab.com/simonpunk/susfs4ksu.git susfs_repo
         
-        # Copia os cabeçalhos obrigatórios da pasta dedicada ao Kernel 4.14
-        cp -f susfs_repo/kernel_patches/KernelSU/v1.5.1/4.14/include/linux/susfs.h include/linux/
-        cp -f susfs_repo/kernel_patches/KernelSU/v1.5.1/4.14/include/linux/susfs_def.h include/linux/
-        cp -f susfs_repo/kernel_patches/KernelSU/v1.5.1/4.14/fs/susfs.c fs/
+        # Localiza dinamicamente as pastas corretas dos arquivos da linha 4.14
+        SUSFS_H_PATH=$(find susfs_repo -name "susfs.h" | grep "4.14" | head -n 1)
+        SUSFS_DEF_PATH=$(find susfs_repo -name "susfs_def.h" | grep "4.14" | head -n 1)
+        SUSFS_C_PATH=$(find susfs_repo -name "susfs.c" | grep "4.14" | head -n 1)
+        
+        # Se não achar na pasta específica 4.14, pega os arquivos universais da raiz do patch
+        [ -z "$SUSFS_H_PATH" ] && SUSFS_H_PATH=$(find susfs_repo -name "susfs.h" | head -n 1)
+        [ -z "$SUSFS_DEF_PATH" ] && SUSFS_DEF_PATH=$(find susfs_repo -name "susfs_def.h" | head -n 1)
+        [ -z "$SUSFS_C_PATH" ] && SUSFS_C_PATH=$(find susfs_repo -name "susfs.c" | head -n 1)
+
+        # Executa as cópias físicas com base no local real encontrado pelo find
+        cp -f "$SUSFS_H_PATH" include/linux/
+        cp -f "$SUSFS_DEF_PATH" include/linux/
+        cp -f "$SUSFS_C_PATH" fs/
         
         # Vincula o SuSFS no Makefile do sistema de arquivos da Xiaomi
         echo "obj-y += susfs.o" >> fs/Makefile
-        echo "Arquivos base do SuSFS para kernel 4.14 injetados com sucesso!"
+        echo "Arquivos base do SuSFS localizados e injetados com sucesso!"
 
         make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.KERNEL_CONFIG }}
         
