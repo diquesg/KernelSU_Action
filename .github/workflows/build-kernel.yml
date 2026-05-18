@@ -256,11 +256,11 @@ jobs:
           export KSU_EXPECTED_HASH=${{ env.KSU_EXPECTED_HASH }}
         fi
 
-        # NEUTRALIZAÇÃO DA TRAVA: Desativa o erro do Kbuild sem mexer na estrutura de blocos (evita o erro de endif)
+        # NEUTRALIZAÇÃO DA TRAVA: Desativa o erro do Kbuild sem mexer na estrutura de blocos
         KSU_KBUILD=$(find . -name "Kbuild" | grep -i "kernelsu" | head -n 1)
         if [ ! -z "$KSU_KBUILD" ]; then
           sed -i 's/\$(error -- Kernel/\$(warning -- Kernel/g' "$KSU_KBUILD"
-          echo "Trava de ganchos transformada em aviso inofensivo no arquivo: $KSU_KBUILD"
+          echo "Trava de ganchos transformada em aviso no arquivo: $KSU_KBUILD"
         fi
 
         make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.KERNEL_CONFIG }}
