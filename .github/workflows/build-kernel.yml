@@ -256,8 +256,11 @@ jobs:
           export KSU_EXPECTED_HASH=${{ env.KSU_EXPECTED_HASH }}
         fi
 
-        # INJEÇÃO VIA MACRO GLOBAL DO COMPILADOR (O segredo definitivo)
+        # INJEÇÃO VIA MACRO GLOBAL DO COMPILADOR
         export KCFLAGS="-DCONFIG_KSU=1 -DCONFIG_KSU_MANUAL_HOOK=1 -DCONFIG_KSU_KPROBES_HOOK=0"
+
+        # COPIA O CABEÇALHO PARA A PASTA GLOBAL (Adicione esta linha abaixo)
+        cp -f KernelSU-Next/kernel/ksu.h include/linux/ksu.h
 
         make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.KERNEL_CONFIG }}
         
