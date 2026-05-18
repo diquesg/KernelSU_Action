@@ -256,36 +256,27 @@ jobs:
           export KSU_EXPECTED_HASH=${{ env.KSU_EXPECTED_HASH }}
         fi
 
-        KSU_H_REAL=$(find . -name "ksu.h" | head -n 1)
-        if [ ! -z "$KSU_H_REAL" ]; then
-          cp -f "$KSU_H_REAL" include/linux/ksu.h
-          KSU_ROOT_DIR=$(echo "$KSU_H_REAL" | sed 's/\/kernel\/ksu.h//')
-          ln -sf "$(pwd)/$KSU_ROOT_DIR" ./KernelSU-Next
+        # Injeta o cabeçalho global na biblioteca do kernel de forma direta
+        if [ -d KernelSU-Next/kernel ]; then
+          cp -f KernelSU-Next/kernel/ksu.h include/linux/ksu.h
           echo "Cabeçalho global do KernelSU injetado com sucesso em include/linux/ksu.h!"
-        else
-          echo "AVISO: ksu.h não foi encontrado na árvore!"
-        fi
-
-        # Move FISICAMENTE os arquivos do KernelSU-Next para dentro de drivers/char/
-        KSU_CORE_DIR=$(find . -name "ksu.h" -exec dirname {} \; | head -n 1)
-        if [ ! -z "$KSU_CORE_DIR" ]; then
-          # 1. Copia fisicamente os arquivos reais (cp em vez de ln), assim a pasta out/ consegue ler
-          cp -f "$KSU_CORE_DIR"/* drivers/char/
           
-          # 2. Descobre o nome exato de todos os arquivos .c do Next e gera a lista para o Makefile
-          KSU_SOURCES=$(cd "$KSU_CORE_DIR" && ls *.c | sed 's/\.c/\.o/' | tr '\n' ' ')
+          # Copia fisicamente apenas os arquivos de código .c e .h para drivers/char/
+          cp -f KernelSU-Next/kernel/*.c drivers/char/
+          cp -f KernelSU-Next/kernel/*.h drivers/char/
           
-          # 3. Injeta a ordem de compilação correta usando a lista real de arquivos do Next
+          # Descobre dinamicamente os objetos .o a partir dos arquivos clonados
+          KSU_SOURCES=$(cd KernelSU-Next/kernel && ls *.c | sed 's/\.c/\.o/' | tr '\n' ' ')
+          
+          # Injeta os alvos de compilação no Makefile nativo
           echo "obj-y += $KSU_SOURCES" >> drivers/char/Makefile
           echo "ccflags-y += -DCONFIG_KSU -DCONFIG_KSU_MANUAL_HOOK" >> drivers/char/Makefile
           
-          # 4. Esvazia o Kbuild original do KernelSU-Next para evitar conflitos de build duplicada
-          KBUILD_OLD=$(find . -name "Kbuild" | grep -i "kernelsu" | head -n 1)
-          if [ ! -z "$KBUILD_OLD" ]; then echo "" > "$KBUILD_OLD"; fi
-          
-          echo "KernelSU-Next copiado fisicamente para drivers/char/ com os objetos: $KSU_SOURCES"
+          # Limpa o Kbuild original para evitar conflitos de compilação duplicada
+          echo "" > KernelSU-Next/kernel/Kbuild
+          echo "KernelSU-Next mesclado fisicamente e com sucesso dentro de drivers/char/!"
         else
-          echo "AVISO: Código fonte do KernelSU não foi encontrado pelo find!"
+          echo "AVISO: Pasta KernelSU-Next não encontrada no diretório padrão!"
         fi
 
         make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.KERNEL_CONFIG }}
