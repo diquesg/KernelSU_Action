@@ -256,9 +256,6 @@ jobs:
           export KSU_EXPECTED_HASH=${{ env.KSU_EXPECTED_HASH }}
         fi
 
-        # INJEÇÃO VIA MACRO GLOBAL DO COMPILADOR (Mantém este)
-        export KCFLAGS="-DCONFIG_KSU=1 -DCONFIG_KSU_MANUAL_HOOK=1 -DCONFIG_KSU_KPROBES_HOOK=0"
-
         make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.KERNEL_CONFIG }}
         
         if [ ${{ env.ENABLE_CCACHE }} = true ]; then
