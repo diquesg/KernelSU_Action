@@ -264,20 +264,13 @@ jobs:
         fi
 
         # DOWNLOAD E INJEÇÃO DOS ARQUIVOS BASE DO SUSFS PARA KERNEL 4.14
-        echo "Baixando arquivos base do SuSFS..."
-        git clone https://gitlab.com/simonpunk/susfs4ksu.git susfs_repo
+        echo "Baixando arquivos base do SuSFS v1.5.1..."
+        git clone https://gitlab.com susfs_repo
         
-        # 1. Copia o cabeçalho principal do SuSFS para a pasta global do kernel
-        cp -f susfs_repo/kernel_patches/include/linux/susfs.h include/linux/
-        
-        # 2. Localiza dinamicamente o arquivo susfs_def.h no repositório e injeta no kernel
-        SUSFS_DEF_PATH=$(find susfs_repo -name "susfs_def.h" | head -n 1)
-        if [ ! -z "$SUSFS_DEF_PATH" ]; then cp -f "$SUSFS_DEF_PATH" include/linux/; fi
-        
-        # 3. Localiza o código fonte do susfs.c da linha 4.14 ou genérico e envia para a pasta fs/
-        SUSFS_C_PATH=$(find susfs_repo -name "susfs.c" | grep -i "4.14" | head -n 1)
-        if [ -z "$SUSFS_C_PATH" ]; then SUSFS_C_PATH=$(find susfs_repo -name "susfs.c" | head -n 1); fi
-        cp -f "$SUSFS_C_PATH" fs/
+        # Copia os cabeçalhos obrigatórios da pasta dedicada ao Kernel 4.14
+        cp -f susfs_repo/kernel_patches/KernelSU/v1.5.1/4.14/include/linux/susfs.h include/linux/
+        cp -f susfs_repo/kernel_patches/KernelSU/v1.5.1/4.14/include/linux/susfs_def.h include/linux/
+        cp -f susfs_repo/kernel_patches/KernelSU/v1.5.1/4.14/fs/susfs.c fs/
         
         # Vincula o SuSFS no Makefile do sistema de arquivos da Xiaomi
         echo "obj-y += susfs.o" >> fs/Makefile
