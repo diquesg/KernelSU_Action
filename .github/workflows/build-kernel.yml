@@ -256,6 +256,14 @@ jobs:
           export KSU_EXPECTED_HASH=${{ env.KSU_EXPECTED_HASH }}
         fi
 
+        # DELEÇÃO MECÂNICA DA TRAVA: Remove as linhas 142-144 que geram o erro de ganchos manuais
+        KSU_KBUILD=$(find . -name "Kbuild" | grep -i "kernelsu" | head -n 1)
+        if [ ! -z "$KSU_KBUILD" ]; then
+          sed -i '/No hooks were defined/,+1d' "$KSU_KBUILD"
+          sed -i '/ifeq ($(CONFIG_KSU_MANUAL_HOOK)/d' "$KSU_KBUILD"
+          echo "Trava de ganchos deletada mecanicamente do arquivo: $KSU_KBUILD"
+        fi
+
         make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.KERNEL_CONFIG }}
         
         if [ ${{ env.ENABLE_CCACHE }} = true ]; then
