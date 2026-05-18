@@ -265,7 +265,7 @@ jobs:
 
         # DOWNLOAD E INJEÇÃO DOS ARQUIVOS BASE DO SUSFS PARA KERNEL 4.14
         echo "Baixando arquivos base do SuSFS v1.5.1..."
-        git clone https://gitlab.com susfs_repo
+        git clone https://gitlab.com/simonpunk/susfs4ksu.git susfs_repo
         
         # Copia os cabeçalhos obrigatórios da pasta dedicada ao Kernel 4.14
         cp -f susfs_repo/kernel_patches/KernelSU/v1.5.1/4.14/include/linux/susfs.h include/linux/
