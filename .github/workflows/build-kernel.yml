@@ -266,11 +266,11 @@ jobs:
           echo "AVISO: ksu.h não foi encontrado na árvore!"
         fi
 
-        # Força o KernelSU-Next a compilar em modo manual limpo sem dependências de Kprobes
         if [ -d KernelSU-Next/kernel ]; then
-          echo 'obj-y += apk.o allowlist.o ksu.o manager.o selinux.o uid.o patch.o' > KernelSU-Next/kernel/Kbuild
+          echo 'KernelSU-Next-y := apk.o allowlist.o ksu.o manager.o selinux.o uid.o patch.o' > KernelSU-Next/kernel/Kbuild
+          echo 'obj-y += KernelSU-Next.o' >> KernelSU-Next/kernel/Kbuild
           echo 'ccflags-y += -DCONFIG_KSU -DCONFIG_KSU_MANUAL_HOOK -I$(srctree)/KernelSU-Next/kernel' >> KernelSU-Next/kernel/Kbuild
-          echo "Validação do Kbuild ajustada para compilação com pasta out!"
+          echo "Mapeamento do Kbuild corrigido para a pasta out!"
         fi
 
         make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.KERNEL_CONFIG }}
